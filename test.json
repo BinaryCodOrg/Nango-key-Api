@@ -1,0 +1,25 @@
+{
+    "error": "No 'integrations' field in response",
+    "data": {
+        "data": [
+            {
+                "unique_key": "google-calendar-getting-started",
+                "provider": "google-calendar",
+                "display_name": "Google Calendar (Getting Started)",
+                "logo": "https://app.nango.dev/images/template-logos/google-calendar.svg",
+                "forward_webhooks": true,
+                "created_at": "2025-09-02T18:31:57.844Z",
+                "updated_at": "2025-09-02T18:31:57.844Z"
+            },
+            {
+                "unique_key": "hubspot",
+                "provider": "hubspot",
+                "display_name": "HubSpot",
+                "logo": "https://app.nango.dev/images/template-logos/hubspot.svg",
+                "forward_webhooks": true,
+                "created_at": "2025-09-03T19:48:04.953Z",
+                "updated_at": "2025-09-03T19:48:04.953Z"
+            }
+        ]
+    }
+}
