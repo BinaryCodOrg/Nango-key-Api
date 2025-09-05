@@ -1,17 +1,15 @@
-export async function handler(event, context) {
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: "Method not allowed" }),
-    };
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
-  try {
-    const body = JSON.parse(event.body); // Parse incoming JSON
-    const { name, email, provider } = body;
+  const { toolName, clientId, clientName } = req.body;
 
+  try {
     const airtableRes = await fetch(
-      `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/${encodeURIComponent(process.env.AIRTABLE_TABLE_NAME)}`,
+      `https://api.airtable.com/v0/${
+        process.env.AIRTABLE_BASE_ID
+      }/${encodeURIComponent(process.env.AIRTABLE_TABLE_NAME)}`,
       {
         method: "POST",
         headers: {
@@ -22,9 +20,9 @@ export async function handler(event, context) {
           records: [
             {
               fields: {
-                "Client Name": name,
-                Email: email,
-                Provider: provider,
+                "Tool Name": toolName,
+                client_ID: clientId,
+                Client_Name: clientName,
               },
             },
           ],
@@ -33,19 +31,8 @@ export async function handler(event, context) {
     );
 
     const data = await airtableRes.json();
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ success: true, data }),
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*", // allow CORS
-      },
-    };
+    res.status(200).json({ success: true, data });
   } catch (err) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message }),
-    };
+    res.status(500).json({ error: err.message });
   }
 }
