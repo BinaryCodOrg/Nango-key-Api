@@ -7,8 +7,20 @@ export async function handler(event, context) {
       },
     });
 
-    if (!response.ok) throw new Error(await response.text());
-    const data = await response.json();
+    const raw = await response.text(); // read raw response
+    console.log("🔍 Nango response:", raw);
+
+    if (!response.ok) throw new Error(raw);
+
+    const data = JSON.parse(raw);
+
+    // Check structure
+    if (!data.integrations) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "No 'integrations' field in response", data }),
+      };
+    }
 
     const providers = data.integrations.map((p) => ({
       provider: p.provider,
@@ -18,7 +30,7 @@ export async function handler(event, context) {
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "*", // allow Duda
+        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
       },
       body: JSON.stringify(providers),
