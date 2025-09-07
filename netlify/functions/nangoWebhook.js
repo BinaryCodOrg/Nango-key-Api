@@ -1,5 +1,5 @@
 // /.netlify/functions/nangoWebhook.js
-exports.handler = async function (event) {
+export async function handler(event) {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -11,11 +11,22 @@ exports.handler = async function (event) {
     const webhookData = JSON.parse(event.body);
     console.log("Nango webhook received:", webhookData);
 
-    // Extract relevant fields from the webhook
-    const connectionId = webhookData.connection_id || "";
+    // Only accept webhooks from Nango and of type 'auth'
+    if (webhookData.from !== "nango" || webhookData.type !== "auth") {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Invalid webhook type or source" }),
+      };
+    }
+
+    // Extract relevant fields
+    const connectionId = webhookData.connectionId || "";
     const provider = webhookData.provider || "";
-    const clientId = webhookData.end_user?.id || "";
-    const status = webhookData.status || "";
+    const clientId = webhookData.endUser?.endUserId || "";
+    const success = webhookData.success === true ? "CONNECTED" : "FAILED";
+    const environment = webhookData.environment || "";
+    const operation = webhookData.operation || "";
+    const providerConfigKey = webhookData.providerConfigKey || "";
 
     // Post to Airtable NangoHookRes table
     const airtableRes = await fetch(
@@ -32,8 +43,11 @@ exports.handler = async function (event) {
               fields: {
                 Connection_ID: connectionId,
                 Provider: provider,
+                Provider_Config_Key: providerConfigKey,
                 Client_ID: clientId,
-                Status: status,
+                Status: success,
+                Environment: environment,
+                Operation: operation,
               },
             },
           ],
@@ -54,4 +68,4 @@ exports.handler = async function (event) {
       body: JSON.stringify({ error: err.message }),
     };
   }
-};
+}
