@@ -29,7 +29,7 @@ exports.handler = async function (event) {
       body: JSON.stringify({
         end_user: { id: clientId },
         allowed_integrations: [toolKey],
-        "success_redirect_url": "https://nango-tools-getter.netlify.app/integrations.html?clientId=123&clientName=John" // chang it according to live link
+        //success_redirect_url: "https://nango-tools-getter.netlify.app/integrations.html?clientId=123&clientName=John" // chang it according to live link
       }),
     });
 
