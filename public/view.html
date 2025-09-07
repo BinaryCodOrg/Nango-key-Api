@@ -1,32 +1,119 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title>View Data</title>
-</head>
-<body>
-  <h2>Stored Leads</h2>
-  <table border="1">
-    <thead><tr><th>Name</th><th>Email</th></tr></thead>
-    <tbody id="data"></tbody>
-  </table>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>View Data</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Lato", sans-serif;
+        background-color: #f8f9fa;
+        margin: 0;
+        padding: 20px;
+      }
+      h2 {
+        margin-bottom: 20px;
+      }
+      .tool-btn {
+        background-color: #e16f56;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        margin-right: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.2s;
+      }
+      .tool-btn:hover {
+        background-color: #28a745;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        padding: 10px;
+        border: 1px solid #ccc;
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Stored Leads</h2>
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const clientId = params.get("clientId");
+    <div id="tools"></div>
 
-    async function loadData() {
-      const res = await fetch(`/.netlify/functions/getData?clientId=${clientId}`);
-      const rows = await res.json();
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>created at</th>
+        </tr>
+      </thead>
+      <tbody id="data"></tbody>
+    </table>
 
-      const tbody = document.getElementById("data");
-      rows.forEach(r => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${r.fields.Lead_Name || ""}</td>
-                        <td>${r.fields.Lead_Email || ""}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
-    loadData();
-  </script>
-</body>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const clientId = params.get("clientId");
+
+      // Load integrated tools from Airtable for this client
+      async function loadTools() {
+        const res = await fetch(
+          `/.netlify/functions/getIntegrations?clientId=${clientId}`
+        );
+        const tools = await res.json();
+
+        const container = document.getElementById("tools");
+        tools.forEach((tool) => {
+          const btn = document.createElement("button");
+          btn.className = "tool-btn";
+          btn.textContent = `Fetch Leads from ${tool.fields.Provider}`;
+          btn.onclick = async () => {
+            const leadsRes = await fetch("/.netlify/functions/getLeads", {
+              method: "POST",
+              body: JSON.stringify({
+                connectionId: tool.fields.Connection_ID,
+                providerConfigKey: tool.fields.Provider_Config_Key,
+              }),
+            });
+            const leadsData = await leadsRes.json();
+            console.log(leadsData);
+            displayLeads(leadsData.leads.records || []);
+          };
+          container.appendChild(btn);
+        });
+      }
+
+      function displayLeads(leads) {
+        const tbody = document.getElementById("data");
+        tbody.innerHTML = ""; // clear previous rows
+        if (Array.isArray(leads) && leads.length > 0) {
+          leads.forEach((lead) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${lead?.first_name || ""} ${
+              lead?.last_name || ""
+            }</td>
+          <td>${lead?.email || ""}</td>
+          <td>${new Date(lead?.created_date).toLocaleDateString() || ""}</td>`;
+            tbody.appendChild(tr);
+          });
+
+          
+
+        } else {
+          alert("noData found");
+        }
+      }
+
+      loadTools();
+    </script>
+  </body>
 </html>
