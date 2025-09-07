@@ -1,6 +1,6 @@
 exports.handler = async function (event, context) {
   try {
-    const response = await fetch(process.env.NANGO_API_URL+"/providers", {
+    const response = await fetch("https://api.nango.dev/integrations", {
       headers: {
         Authorization: `Bearer ${process.env.NANGO_SECRET_KEY}`,
         "Content-Type": "application/json",
@@ -12,12 +12,11 @@ exports.handler = async function (event, context) {
 
     const data = JSON.parse(raw);
 
-    // Nango returns { data: [ ...providers ] }
-    const providers = data.data.map((p) => ({
-      provider: p.provider,
-      display_name: p.display_name || p.provider,
-      logo: p.logo,
-      categories: p.categories || [],
+    const integrations = data.data.map((i) => ({
+      key: i.unique_key,
+      provider: i.provider,
+      name: i.display_name || i.provider,
+      logo: i.logo,
     }));
 
     return {
@@ -26,7 +25,7 @@ exports.handler = async function (event, context) {
         "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(providers),
+      body: JSON.stringify(integrations),
     };
   } catch (err) {
     return {

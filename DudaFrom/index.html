@@ -1,56 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<form id="integrationForm">
+  <label for="toolName">Select Tool:</label>
+  <select id="toolName" name="toolName" required>
+    <option value="">Loading tools...</option>
+  </select>
 
-    <!-- Bootstrap CSS -->
-    <!-- https://cdnjs.com/libraries/twitter-bootstrap/5.0.0-beta1 -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.0-beta1/css/bootstrap.min.css"
-    />
+  <label for="clientId">Client ID:</label>
+  <input type="text" id="clientId" name="clientId" required />
 
-    <!-- Icons: https://getbootstrap.com/docs/5.0/extend/icons/ -->
-    <!-- https://cdnjs.com/libraries/font-awesome -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"
-    />
+  <label for="clientName">Client Name:</label>
+  <input type="text" id="clientName" name="clientName" required />
 
-    <title>Hello, world!</title>
-  </head>
-  <body class="d-flex vw-100 vh-100 align-items-center justify-content-center">
-    <button class="btn btn-primary">
-      <i class="fab fa-accessible-icon me-1"></i>Hello, world!
-    </button>
+  <button type="submit">Submit</button>
+</form>
 
-    <!-- Optional JavaScript; choose one of the two! -->
+<script>
+  // ✅ Load Nango tools from your proxy API
+  async function loadTools() {
+    try {
+      const res = await fetch(
+        "https://nango-tools-getter.netlify.app/.netlify/functions/nango"
+      );
+      const tools = await res.json();
 
+      const toolSelect = document.getElementById("toolName");
+      toolSelect.innerHTML = ""; // clear loading option
 
-    
+      tools.forEach((tool) => {
+        const option = document.createElement("option");
+        option.value = tool.display_name || tool.name;
+        option.textContent = tool.display_name || tool.name;
+        toolSelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error("Error loading tools:", error);
+    }
+  }
 
+  loadTools();
 
+  // ✅ Handle form submission → send to Airtable proxy
+  document
+    .getElementById("integrationForm")
+    .addEventListener("submit", async function (e) {
+      e.preventDefault();
 
+      const payload = {
+        toolName: document.getElementById("toolName").value,
+        clientId: document.getElementById("clientId").value,
+        clientName: document.getElementById("clientName").value,
+      };
 
+      try {
+        const res = await fetch(
+          "https://nango-tools-getter.netlify.app/.netlify/functions/airtable",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          }
+        );
 
-
-
-
-    <!-- Option 1: Bootstrap Bundle with Popper -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.0-beta1/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Option 2: Separate Popper and Bootstrap JS -->
-
-    <!-- https://cdnjs.com/libraries/popper.js/2.5.4 -->
-    <!-- <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.5.4/umd/popper.min.js"
-    ></script>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.0-beta1/js/bootstrap.min.js"
-    ></script> -->
-
-    <!-- More: https://getbootstrap.com/docs/5.0/getting-started/introduction/ -->
-  </body>
-</html>
+        if (res.ok) {
+          alert("Form submitted successfully!");
+          document.getElementById("integrationForm").reset();
+        } else {
+          const errorMsg = await res.text();
+          alert("Error submitting form: " + errorMsg);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Unexpected error. Check console for details.");
+      }
+    });
+</script>

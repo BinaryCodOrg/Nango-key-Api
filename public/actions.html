@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Actions</title>
+</head>
+<body>
+  <h2>Connected Tools</h2>
+  <button onclick="fetchLeads()">Fetch HubSpot Leads</button>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const clientId = params.get("clientId");
+
+    async function fetchLeads() {
+      const res = await fetch("/.netlify/functions/fetchLeads", {
+        method: "POST",
+        body: JSON.stringify({ clientId, connectionId: "hubspot" }),
+      });
+      const data = await res.json();
+      alert("Fetched leads: " + data.leads.length);
+    }
+  </script>
+</body>
+</html>

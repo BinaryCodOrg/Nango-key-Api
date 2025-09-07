@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>View Data</title>
+</head>
+<body>
+  <h2>Stored Leads</h2>
+  <table border="1">
+    <thead><tr><th>Name</th><th>Email</th></tr></thead>
+    <tbody id="data"></tbody>
+  </table>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const clientId = params.get("clientId");
+
+    async function loadData() {
+      const res = await fetch(`/.netlify/functions/getData?clientId=${clientId}`);
+      const rows = await res.json();
+
+      const tbody = document.getElementById("data");
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${r.fields.Lead_Name || ""}</td>
+                        <td>${r.fields.Lead_Email || ""}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    loadData();
+  </script>
+</body>
+</html>
