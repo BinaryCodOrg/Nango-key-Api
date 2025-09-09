@@ -21,6 +21,16 @@ export async function handler(event) {
       };
     }
 
+    // 👉 If this is a forwarded provider webhook (e.g. HubSpot lead)
+   if (webhookData.type === "sync" && webhookData.model === "Contact") {
+      console.log("✅ Nango synce:", webhookData.data);
+      // Not changing any functionality, just logging
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ success: true, message: "Lead data logged" }),
+      };
+    }
+
     // ✅ Existing functionality for auth events
     if (webhookData.from !== "nango" || webhookData.type !== "auth") {
       return {
