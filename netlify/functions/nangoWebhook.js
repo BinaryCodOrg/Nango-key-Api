@@ -11,7 +11,17 @@ export async function handler(event) {
     const webhookData = JSON.parse(event.body);
     console.log("Nango webhook received:", webhookData);
 
-    // Only accept webhooks from Nango and of type 'auth'
+    // 👉 If this is a forwarded provider webhook (e.g. HubSpot lead)
+    if (webhookData.from === "nango" && webhookData.type === "webhook") {
+      console.log("✅ Lead or provider data received:", webhookData.data);
+      // Not changing any functionality, just logging
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ success: true, message: "Lead data logged" }),
+      };
+    }
+
+    // ✅ Existing functionality for auth events
     if (webhookData.from !== "nango" || webhookData.type !== "auth") {
       return {
         statusCode: 400,
